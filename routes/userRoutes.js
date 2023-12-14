@@ -15,10 +15,16 @@ router.post('/users/login', (req, res, next) => {
   next(); // Chama o próximo middleware (userController.loginUser)
 }, userController.loginUser);
 
+
 // Rota para logout do usuário
 router.post('/users/logout', auth, (req, res, next) => {
   console.log('Frontend está acessando a rota de logout do usuário');
   next(); // Chama o próximo middleware (userController.logoutUser)
 }, userController.logoutUser);
+
+router.get('/users/me', auth, (req, res, next) => {
+  console.log('Frontend está acessando a rota de informações do usuário');
+  next(); // Chama o próximo middleware (userController.getUser)
+}, userController.getUser);
 
 module.exports = router;

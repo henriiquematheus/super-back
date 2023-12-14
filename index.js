@@ -1,29 +1,60 @@
 const express = require('express');
+const http = require('http');
+const socketIO = require('socket.io');
+const cors = require('cors');
+
 const app = express();
-const mongoose = require('./db'); // Importe sua configuração do banco de dados
+const server = http.createServer(app);
+const io = socketIO(server);
+
+const connectedUsers = new Map(); // Mapa para armazenar os usuários conectados
 
 // Importe as rotas
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 
-// Middleware para processar JSON
 app.use(express.json());
 
-// Rotas para usuários
-app.use('/api', userRoutes);
+// Configuração do CORS para permitir uma origem específica
+app.use(
+  cors({
+    origin: 'http://localhost:19006', // ou a origem real da sua aplicação
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    optionsSuccessStatus: 204,
+  })
+);
 
-// Rotas para produtos
+app.use('/api', userRoutes);
 app.use('/api', productRoutes);
 
-// Rota padrão para verificar se o servidor está ativo
 app.get('/', (req, res) => {
   res.send('Servidor ativo!');
 });
 
-// Porta em que o servidor será iniciado
+io.on('connection', (socket) => {
+  console.log('New client connected');
+
+  socket.on('login', (name) => {
+    connectedUsers.set(socket.id, name); // Associa o socket.id com o nome do usuário
+  });
+
+  socket.on('sendMessage', (data) => {
+    const { sender, text } = data;
+
+    // Emite a mensagem para todos os clientes conectados
+    io.emit('message', { sender, text });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+    // Remove o cliente desconectado do mapa
+    connectedUsers.delete(socket.id);
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 
-// Iniciar o servidor
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
