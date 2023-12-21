@@ -15,7 +15,8 @@ The primary challenge revolved around integrating the shopping cart feature due 
   npm i
   npm start dev 
 ```
-    ## Environment Variables
+
+## Environment Variables
 
 To run this project, you'll need to add the following environment variables to your .env file:
 
